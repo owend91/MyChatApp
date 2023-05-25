@@ -22,10 +22,11 @@ class LogInViewModel: ObservableObject {
             let result = try await FirebaseManager.shared.auth
                 .createUser(withEmail: email, password: password)
             print("Successfully created user: \(result.user.uid)")
-//            self.feedbackMessage = "Successfully created user"
-            FirebaseManager.shared.loggedInUid = result.user.uid
+//            FirebaseManager.shared.loggedInUid = result.user.uid
             if let url = await storeProfileImage() {
                 await storeUserInformation(profileImageUrl: url)
+                
+                FirebaseManager.shared.loggedInUser = User(uid: result.user.uid, email: email, profileImageUrl: url)
                 loginRegisterPressed = false
             }
             loginRegisterPressed = false
@@ -43,7 +44,8 @@ class LogInViewModel: ObservableObject {
             let result = try await FirebaseManager.shared.auth
                 .signIn(withEmail: email, password: password)
             print("Successfully signed in user: \(result.user.uid)")
-            FirebaseManager.shared.loggedInUid = result.user.uid
+//            FirebaseManager.shared.loggedInUid = result.user.uid
+            await getUserInformation()
         } catch {
             print("Failed to sign into used user: \(error)")
             self.feedbackMessage = "Failed to sign into user: \(error.localizedDescription)"
@@ -77,12 +79,26 @@ class LogInViewModel: ObservableObject {
                         FirebaseConstants.profileImageUrl: profileImageUrl.absoluteString]
         do {
             try await FirebaseManager.shared.firestore
-                .collection("users")
+                .collection(FirebaseConstants.users)
                 .document(uid)
                 .setData(userData)
             print("successfully saved user data to firestore")
         } catch {
             print(error)
+        }
+    }
+    
+    @MainActor
+    func getUserInformation() async {
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
+        do {
+            let snapshot = try await FirebaseManager.shared.firestore.collection(FirebaseConstants.users).document(uid).getDocument()
+            guard let data = snapshot.data() else { return }
+            
+            FirebaseManager.shared.loggedInUser = User(data: data)
+            
+        } catch {
+            print("Error fetching user info: \(error.localizedDescription)")
         }
     }
     

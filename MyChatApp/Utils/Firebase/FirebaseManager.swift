@@ -18,6 +18,7 @@ class FirebaseManager: ObservableObject {
     let firestore: Firestore
     
     @Published var loggedInUid: String?
+    @Published var loggedInUser: User?
     
 //    var currentUser: ChatUser?
     

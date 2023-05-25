@@ -39,9 +39,9 @@ struct RegisterView: View {
                         vm.feedbackMessage = nil
                         Task {
                             await vm.registerNewAccount()
-                            if let uid = FirebaseManager.shared.loggedInUid {
+                            if let user = FirebaseManager.shared.loggedInUser {
                                 dismiss()
-                                routerManager.push(to: .messageHome(uid: uid))
+                                routerManager.push(to: .messageHome(loggedInUser: user))
                             }
                         }
                         

@@ -11,7 +11,7 @@ import SwiftUI
 enum Route {
     
     
-    case messageHome(uid: String)
+    case messageHome(loggedInUser: User)
 }
 
 extension Route: Hashable {
@@ -33,8 +33,8 @@ extension Route: View {
     var body: some View {
         switch self {
 
-        case .messageHome(let uid):
-            MessageHomeView(uid: uid)
+        case .messageHome(let loggedInUser):
+            MessageHomeView(loggedInUser: loggedInUser)
         }
     }
 }

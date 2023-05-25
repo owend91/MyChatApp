@@ -17,22 +17,18 @@ struct LogInView: View {
             ZStack {
                 ColorConstants.background.ignoresSafeArea()
                 VStack {
-//                    if let feedbackMessage = vm.feedbackMessage {
-//                        Text(feedbackMessage)
-//                    }
                     EmailPasswordForm(email: $vm.email,
                                       password: $vm.password,
                                       buttonText: "Log In") {
                         vm.feedbackMessage = nil
                         Task {
                             await vm.loginAccount()
-                            if let uid = FirebaseManager.shared.loggedInUid {
-                                routerManager.push(to: .messageHome(uid: uid))
+                            if let user = FirebaseManager.shared.loggedInUser {
+                                routerManager.push(to: .messageHome(loggedInUser: user))
                             }
                         }
                     }
-                                    
-                                      
+                                
                     
                     Button {
                         showRegisterModal.toggle()
@@ -61,9 +57,11 @@ struct LogInView: View {
             }
             .navigationTitle("Login")
             .navigationDestination(for: Route.self) { $0 }
-
+            .onAppear {
+                vm.email = ""
+                vm.password = ""
+            }
         }
-        
     }
 }
 
