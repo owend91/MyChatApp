@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct MyChatAppApp: App {
+    @StateObject private var routerManager = NavigationRouter()
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LogInView()
+                .environmentObject(routerManager)
         }
     }
 }
