@@ -8,15 +8,32 @@
 import SwiftUI
 
 struct MessageHomeView: View {
-    let loggedInUser: User
-    @State private var showSettings = false
-    @StateObject var vm = MessageHomeViewModel()
     @EnvironmentObject var routerManager: NavigationRouter
+    @StateObject var vm = MessageHomeViewModel()
+    @State private var showSettings = false
+    @State private var showNewMessasgeScreen = false
+    @State var selectedUser: User?
+
+    let loggedInUser: User
+
     var body: some View {
         ZStack {
             ColorConstants.background.ignoresSafeArea()
             VStack {
                 headerBar
+                    .padding(.top)
+                Spacer()
+                Button {
+                    showNewMessasgeScreen.toggle()
+                } label: {
+                    Spacer()
+                    Text("+ New Message")
+                        .padding(.vertical)
+                    Spacer()
+                }
+                .buttonBorderShape(.capsule)
+                .buttonStyle(.borderedProminent)
+                .shadow(radius: 5)
                 
             }
             .padding(.horizontal)
@@ -33,6 +50,22 @@ struct MessageHomeView: View {
                     routerManager.reset()
                 }
             }
+            .onChange(of: selectedUser, perform: { _ in
+                if let selectedUser {
+                    routerManager.push(to: .chatView(userChattingWith: selectedUser))
+                }
+            })
+            .fullScreenCover(isPresented: $showNewMessasgeScreen) {
+                NavigationStack {
+                    NewMessageView(selectedUser: $selectedUser)
+                }
+            }
+            .navigationBarBackButtonHidden()
+            .onAppear{
+                selectedUser = nil
+            }
+            
+            
         }
     }
 }
@@ -46,20 +79,8 @@ struct MessageHomeView_Previews: PreviewProvider {
 extension MessageHomeView {
     var headerBar: some View {
         HStack(spacing: 10) {
-            AsyncImage(url: loggedInUser.profileImageUrl) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 64, height: 64)
-                    .clipShape(Circle())
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 80)
-                            .stroke(Color(.label), lineWidth: 1)
-                    }
-                    .shadow(radius: 5)
-            } placeholder: {
-                ProgressView()
-            }
+            UserAvatarCircleView(url: loggedInUser.profileImageUrl, dimension: 64)
+            
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(loggedInUser.userName)")
                     .font(.system(size: 24, weight: .bold))

@@ -7,7 +7,8 @@
 
 import Foundation
 
-struct User {
+struct User: Identifiable, Equatable {
+    var id: String { uid }
     let uid: String
     let email: String
     let profileImageUrl: URL?
