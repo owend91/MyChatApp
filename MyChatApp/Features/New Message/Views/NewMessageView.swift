@@ -23,6 +23,7 @@ struct NewMessageView: View {
                         HStack(spacing: 15) {
                             UserAvatarCircleView(url: user.profileImageUrl, dimension: 50)
                             Text("\(user.email)")
+                                .foregroundColor(Color(.label))
                             Spacer()
 
                         }

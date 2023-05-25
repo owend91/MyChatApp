@@ -32,6 +32,7 @@
 		638080D72A1FE691002BD0F7 /* NewMessageViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638080D62A1FE691002BD0F7 /* NewMessageViewModel.swift */; };
 		638080DA2A1FE972002BD0F7 /* UserAvatarCircleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638080D92A1FE972002BD0F7 /* UserAvatarCircleView.swift */; };
 		638080DE2A1FF70D002BD0F7 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638080DD2A1FF70D002BD0F7 /* ChatView.swift */; };
+		638080E02A1FFAE3002BD0F7 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638080DF2A1FFAE3002BD0F7 /* ChatMessage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,6 +59,7 @@
 		638080D62A1FE691002BD0F7 /* NewMessageViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewMessageViewModel.swift; sourceTree = "<group>"; };
 		638080D92A1FE972002BD0F7 /* UserAvatarCircleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAvatarCircleView.swift; sourceTree = "<group>"; };
 		638080DD2A1FF70D002BD0F7 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		638080DF2A1FFAE3002BD0F7 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -210,6 +212,7 @@
 			isa = PBXGroup;
 			children = (
 				638080CA2A1FAACC002BD0F7 /* User.swift */,
+				638080DF2A1FFAE3002BD0F7 /* ChatMessage.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -363,6 +366,7 @@
 				638080BA2A1E96A0002BD0F7 /* LogInViewModel.swift in Sources */,
 				638080B42A1E9200002BD0F7 /* RegisterView.swift in Sources */,
 				638080D12A1FDB30002BD0F7 /* NewMessageView.swift in Sources */,
+				638080E02A1FFAE3002BD0F7 /* ChatMessage.swift in Sources */,
 				638080BE2A1EA064002BD0F7 /* MessageHomeView.swift in Sources */,
 				638080AF2A1E7521002BD0F7 /* LogInView.swift in Sources */,
 				638080CF2A1FD711002BD0F7 /* MessageHomeViewModel.swift in Sources */,

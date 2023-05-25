@@ -12,4 +12,7 @@ struct FirebaseConstants {
     static let uid = "uid"
     static let profileImageUrl = "profileImageUrl"
     static let users = "users"
+    static let fromId = "fromId"
+    static let toId = "toId"
+    static let text = "text"
 }
