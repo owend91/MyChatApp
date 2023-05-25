@@ -1,0 +1,42 @@
+# Created by https://www.toptal.com/developers/gitignore/api/xcode,swiftpm,swiftpackagemanager,firebase
+# Edit at https://www.toptal.com/developers/gitignore?templates=xcode,swiftpm,swiftpackagemanager,firebase
+
+### Firebase ###
+.idea
+**/node_modules/*
+**/.firebaserc
+/GoogleService-Info.plist
+
+### Firebase Patch ###
+.runtimeconfig.json
+.firebase/
+
+### SwiftPackageManager ###
+Packages
+.build/
+xcuserdata
+DerivedData/
+*.xcodeproj
+
+
+### SwiftPM ###
+
+
+### Xcode ###
+## User settings
+xcuserdata/
+
+## Xcode 8 and earlier
+*.xcscmblueprint
+*.xccheckout
+
+### Xcode Patch ###
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/project.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+/*.gcno
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+# End of https://www.toptal.com/developers/gitignore/api/xcode,swiftpm,swiftpackagemanager,firebase
