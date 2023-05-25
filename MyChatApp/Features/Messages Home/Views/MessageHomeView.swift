@@ -17,6 +17,6 @@ struct MessageHomeView: View {
 
 struct MessageHomeView_Previews: PreviewProvider {
     static var previews: some View {
-        MessageHomeView(uid: "asd324rafd")
+        MessageHomeView(uid: "asd324rafdrest")
     }
 }
