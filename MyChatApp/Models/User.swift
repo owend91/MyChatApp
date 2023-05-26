@@ -27,6 +27,18 @@ struct User: Identifiable, Equatable {
         self.email = email
         self.profileImageUrl = profileImageUrl
     }
+    
+    init(recentMessage: RecentMessage) {
+        guard let currentUser = FirebaseManager.shared.loggedInUser else {
+            self.uid = ""
+            self.email = ""
+            self.profileImageUrl = nil
+            return
+        }
+        self.uid = currentUser.uid == recentMessage.fromId ? recentMessage.toId : recentMessage.fromId
+        self.email = recentMessage.email
+        self.profileImageUrl = URL(string: recentMessage.profileImageUrl)
+    }
 }
 
 extension User {

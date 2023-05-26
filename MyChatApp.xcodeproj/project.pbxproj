@@ -34,6 +34,7 @@
 		638080DE2A1FF70D002BD0F7 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638080DD2A1FF70D002BD0F7 /* ChatView.swift */; };
 		638080E02A1FFAE3002BD0F7 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638080DF2A1FFAE3002BD0F7 /* ChatMessage.swift */; };
 		638080E32A20E292002BD0F7 /* ChatViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638080E22A20E292002BD0F7 /* ChatViewModel.swift */; };
+		638080E52A2109F2002BD0F7 /* RecentMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638080E42A2109F2002BD0F7 /* RecentMessage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +63,7 @@
 		638080DD2A1FF70D002BD0F7 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		638080DF2A1FFAE3002BD0F7 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
 		638080E22A20E292002BD0F7 /* ChatViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewModel.swift; sourceTree = "<group>"; };
+		638080E42A2109F2002BD0F7 /* RecentMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentMessage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -215,6 +217,7 @@
 			children = (
 				638080CA2A1FAACC002BD0F7 /* User.swift */,
 				638080DF2A1FFAE3002BD0F7 /* ChatMessage.swift */,
+				638080E42A2109F2002BD0F7 /* RecentMessage.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -372,6 +375,7 @@
 				638080C82A1EEF50002BD0F7 /* FirebaseConstants.swift in Sources */,
 				638080DA2A1FE972002BD0F7 /* UserAvatarCircleView.swift in Sources */,
 				638080B62A1E926B002BD0F7 /* ColorConstants.swift in Sources */,
+				638080E52A2109F2002BD0F7 /* RecentMessage.swift in Sources */,
 				638080952A1E7204002BD0F7 /* ContentView.swift in Sources */,
 				638080D72A1FE691002BD0F7 /* NewMessageViewModel.swift in Sources */,
 				638080CB2A1FAACC002BD0F7 /* User.swift in Sources */,

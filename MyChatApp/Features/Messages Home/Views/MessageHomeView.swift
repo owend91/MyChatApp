@@ -21,8 +21,34 @@ struct MessageHomeView: View {
             ColorConstants.background.ignoresSafeArea()
             VStack {
                 headerBar
-                    .padding(.top)
-                Spacer()
+                    .padding(.vertical)
+                ScrollView {
+                    ForEach(vm.recentMessages) { rm in
+                        Button {
+                            selectedUser = User(recentMessage: rm)
+                        } label: {
+                            HStack {
+                                UserAvatarCircleView(url: URL(string: rm.profileImageUrl), dimension: 50, showShadow: false)
+                                    .padding(.top, 1)
+                                VStack(alignment: .leading) {
+                                    Text(rm.username)
+                                        .foregroundColor(Color(.label))
+                                        .font(.system(size: 18, weight: .bold))
+                                    
+                                    Text(rm.text)
+                                        .foregroundColor(Color(.darkGray))
+                                        .font(.system(size: 12))
+                                }
+                                Spacer()
+                                Text(rm.timeSinceMessage)
+                                    .font(.system(size: 12, weight: .bold))
+
+                                
+                            }
+                        }
+                        
+                    }
+                }
                 Button {
                     showNewMessasgeScreen.toggle()
                 } label: {
@@ -52,6 +78,7 @@ struct MessageHomeView: View {
             }
             .onChange(of: selectedUser, perform: { _ in
                 if let selectedUser {
+                    print("User selected")
                     routerManager.push(to: .chatView(vm: ChatViewModel(chattingWithUser: selectedUser)))
                 }
             })
@@ -79,7 +106,7 @@ struct MessageHomeView_Previews: PreviewProvider {
 extension MessageHomeView {
     var headerBar: some View {
         HStack(spacing: 10) {
-            UserAvatarCircleView(url: loggedInUser.profileImageUrl, dimension: 64)
+            UserAvatarCircleView(url: loggedInUser.profileImageUrl, dimension: 64, showShadow: true)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(loggedInUser.userName)")

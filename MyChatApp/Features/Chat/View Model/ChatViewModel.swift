@@ -10,6 +10,7 @@ import Firebase
 
 class ChatViewModel: ObservableObject {
     @Published var text = ""
+    var backupText = ""
     @Published var chatMessages = [ChatMessage]()
     @Published var chatCount = 0
     var firestoreListener: ListenerRegistration?
@@ -30,7 +31,10 @@ class ChatViewModel: ObservableObject {
             .collection(toId)
             .document()
         
-        let messageData = [FirebaseConstants.fromId: fromId, FirebaseConstants.toId: toId, FirebaseConstants.text: text, "timestamp": Timestamp()] as [String: Any]
+        let messageData = [FirebaseConstants.fromId: fromId,
+                           FirebaseConstants.toId: toId,
+                           FirebaseConstants.text: text,
+                           FirebaseConstants.timestamp: Timestamp()] as [String: Any]
         
         let chatPartnerMessage = FirebaseManager.shared.firestore
             .collection(FirebaseConstants.chatMessages)
@@ -40,12 +44,57 @@ class ChatViewModel: ObservableObject {
         
         
         do {
+            backupText = text
             text = ""
             try await currentUserMessage.setData(messageData)
             try await chatPartnerMessage.setData(messageData)
+            await saveRecentMessage()
+            backupText = ""
+            
         } catch {
             print("Error saving message: \(error)")
         }
+    }
+    
+    func saveRecentMessage() async {
+        guard let fromId = FirebaseManager.shared.loggedInUser?.uid else { return }
+        let toId = chattingWithUser.uid
+        
+        let currentUserDocument = FirebaseManager.shared.firestore
+            .collection(FirebaseConstants.recentMessage)
+            .document(fromId)
+            .collection(FirebaseConstants.messages)
+            .document(toId)
+        
+
+        let dataForCurrentUser = [FirebaseConstants.fromId: fromId,
+                    FirebaseConstants.toId: toId,
+                    FirebaseConstants.email: chattingWithUser.email,
+                    FirebaseConstants.text: backupText,
+                                  FirebaseConstants.profileImageUrl: chattingWithUser.profileImageUrl?.absoluteString as? String ?? "",
+                                  FirebaseConstants.timestamp: Timestamp() ] as [String: Any]
+        
+        let chattingWithUserDocument = FirebaseManager.shared.firestore
+            .collection(FirebaseConstants.recentMessage)
+            .document(toId)
+            .collection(FirebaseConstants.messages)
+            .document(fromId)
+        
+
+        let dataForChattingWithUser = [FirebaseConstants.fromId: fromId,
+                    FirebaseConstants.toId: toId,
+                    FirebaseConstants.email: FirebaseManager.shared.loggedInUser?.email as? String ?? "",
+                    FirebaseConstants.text: backupText,
+                    FirebaseConstants.profileImageUrl: FirebaseManager.shared.loggedInUser?.profileImageUrl?.absoluteString as? String ?? "",
+                                  FirebaseConstants.timestamp: Timestamp() ] as [String: Any]
+        
+        do {
+            try await currentUserDocument.setData(dataForCurrentUser)
+            try await chattingWithUserDocument.setData(dataForChattingWithUser)
+        } catch {
+            print("Error saving recent message: \(error)")
+        }
+        
     }
     
     func fetchMessages() {
@@ -80,10 +129,9 @@ class ChatViewModel: ObservableObject {
                 DispatchQueue.main.async{
                     self.chatCount += 1
                     print("incremented counter: \(self.chatCount)")
-
                 }
-                
-                
             }
     }
+    
+    
 }

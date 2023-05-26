@@ -10,6 +10,7 @@ import SwiftUI
 struct UserAvatarCircleView: View {
     let url: URL?
     let dimension: CGFloat
+    let showShadow: Bool
     var body: some View {
         AsyncImage(url: url) { phase in
             switch phase {
@@ -26,7 +27,7 @@ struct UserAvatarCircleView: View {
                         RoundedRectangle(cornerRadius: dimension)
                             .stroke(Color(.label), lineWidth: 1)
                     }
-                    .shadow(radius: 5)
+                    .shadow(radius: showShadow ? 5 : 0)
             case .failure:
                 Image(systemName: "photo")
             @unknown default:
@@ -39,6 +40,6 @@ struct UserAvatarCircleView: View {
 
 struct UserAvatarCircleView_Previews: PreviewProvider {
     static var previews: some View {
-        UserAvatarCircleView(url: URL(string: "https://firebasestorage.googleapis.com:443/v0/b/mychatapp-fe585.appspot.com/o/KZxy244JOkZrObXFsruHAyCsdlw2?alt=media&token=b4f16880-b2b4-43bd-b38f-9d3b7b19e330"), dimension: 64)
+        UserAvatarCircleView(url: URL(string: "https://firebasestorage.googleapis.com:443/v0/b/mychatapp-fe585.appspot.com/o/KZxy244JOkZrObXFsruHAyCsdlw2?alt=media&token=b4f16880-b2b4-43bd-b38f-9d3b7b19e330"), dimension: 64, showShadow: true)
     }
 }

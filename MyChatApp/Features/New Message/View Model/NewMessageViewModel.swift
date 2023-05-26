@@ -13,7 +13,6 @@ class NewMessageViewModel: ObservableObject {
     
     @MainActor
     func getAllUsers() async {
-        
         do {
             let querySnapshot = try await FirebaseManager.shared.firestore
                 .collection(FirebaseConstants.users)
@@ -25,6 +24,5 @@ class NewMessageViewModel: ObservableObject {
         } catch {
             print("Error getting all users: \(error)")
         }
-       
     }
 }
