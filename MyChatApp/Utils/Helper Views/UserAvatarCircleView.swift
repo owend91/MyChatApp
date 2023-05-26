@@ -15,6 +15,7 @@ struct UserAvatarCircleView: View {
             switch phase {
             case .empty:
                 ProgressView()
+                    .frame(width: dimension, height: dimension)
             case .success(let image):
                 image
                     .resizable()

@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct ChatView: View {
-    let userChattingWith: User
-    @State var chatText = ""
+//    let userChattingWith: User
+    @ObservedObject var vm: ChatViewModel
     var body: some View {
         VStack {
             chatMessages
             chatBottomBar
             
         }
-        .navigationTitle(userChattingWith.email)
+        .navigationTitle(vm.chattingWithUser.email)
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -24,7 +24,7 @@ struct ChatView: View {
 struct ChatView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
-            ChatView(userChattingWith: User.sampleMessagingUser)
+            ChatView(vm: ChatViewModel(chattingWithUser: User.sampleMessagingUser))
         }
     }
 }
@@ -38,13 +38,15 @@ extension ChatView {
                 .foregroundColor(Color(.darkGray))
             ZStack {
                 descriptionPlaceholder
-                TextEditor(text: $chatText)
-                    .opacity(chatText.isEmpty ? 0.5 : 1)
+                TextEditor(text: $vm.text)
+                    .opacity(vm.text.isEmpty ? 0.5 : 1)
             }
             .frame(height: 40)
             
             Button {
-                
+                Task {
+                    await vm.sendMessage()
+                }
             } label: {
                 Text("Send")
             }
@@ -57,8 +59,8 @@ extension ChatView {
         ZStack {
             ColorConstants.background
             ScrollView {
-                ForEach(ChatMessage.samples) { message in
-                    MessageView(message: message, userChattingWith: userChattingWith)
+                ForEach(vm.chatMessages) { message in
+                    MessageView(message: message, userChattingWith: vm.chattingWithUser)
                 }
                 HStack {
                     Spacer()

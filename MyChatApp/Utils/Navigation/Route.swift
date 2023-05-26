@@ -10,7 +10,7 @@ import SwiftUI
 
 enum Route {
     case messageHome(loggedInUser: User)
-    case chatView(userChattingWith: User)
+    case chatView(vm: ChatViewModel)
 }
 
 extension Route: Hashable {
@@ -37,8 +37,8 @@ extension Route: View {
 
         case .messageHome(let loggedInUser):
             MessageHomeView(loggedInUser: loggedInUser)
-        case .chatView(let userChattingWith):
-            ChatView(userChattingWith: userChattingWith)
+        case .chatView(let vm):
+            ChatView(vm: vm)
         }
     }
 }

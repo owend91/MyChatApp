@@ -57,7 +57,14 @@ struct LogInView: View {
             }
             .navigationTitle("Login")
             .navigationDestination(for: Route.self) { $0 }
-            .onAppear {
+            .task {
+                
+                if let _ = FirebaseManager.shared.auth.currentUser {
+                    await vm.getUserInformation()
+                    if let user = FirebaseManager.shared.loggedInUser {
+                        routerManager.push(to: .messageHome(loggedInUser: user))
+                    }
+                }
                 vm.email = ""
                 vm.password = ""
             }

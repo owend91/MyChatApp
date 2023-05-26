@@ -52,7 +52,7 @@ struct MessageHomeView: View {
             }
             .onChange(of: selectedUser, perform: { _ in
                 if let selectedUser {
-                    routerManager.push(to: .chatView(userChattingWith: selectedUser))
+                    routerManager.push(to: .chatView(vm: ChatViewModel(chattingWithUser: selectedUser)))
                 }
             })
             .fullScreenCover(isPresented: $showNewMessasgeScreen) {
