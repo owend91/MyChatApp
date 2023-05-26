@@ -15,11 +15,21 @@ struct MyChatAppApp: App {
             NavigationStack(path: $routerManager.routes) {
                 ProgressView()
                     .navigationDestination(for: Route.self) { $0 }
+                    .onTapGesture(count: 5) {
+                        do {
+                            try FirebaseManager.shared.auth.signOut()
+                            print("Signed out")
+                        } catch {
+                            print("error signing out")
+                        }
+                    }
             }
             .environmentObject(routerManager)
             .task {
                 if let _ = FirebaseManager.shared.auth.currentUser {
+                    print("checking current user")
                     await FirebaseManager.getUserInformation()
+                    print("received current user: \(FirebaseManager.shared.loggedInUser)")
                     if let user = FirebaseManager.shared.loggedInUser {
                         routerManager.push(to: .messageHome(loggedInUser: user))
                     }

@@ -24,13 +24,17 @@ struct RegisterView: View {
                     } label: {
                         if let _ = vm.profileImage {
                             selectedImageView
-                            
                         } else {
                             nonSelectedImageView
                         }
                     }
                     .fullScreenCover(isPresented: $shouldShowImagePicker) {
                         ImagePicker(image: $vm.profileImage)
+                    }
+                    .onChange(of: vm.profileImage) { _ in
+                        if vm.profileImage != nil {
+                            vm.feedbackMessage = ""
+                        }
                     }
                     
                     EmailPasswordForm(email: $vm.email,

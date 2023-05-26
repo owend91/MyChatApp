@@ -33,7 +33,6 @@ struct UserAvatarCircleView: View {
             @unknown default:
                 EmptyView()
             }
-           
         }
     }
 }

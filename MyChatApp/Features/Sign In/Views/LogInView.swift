@@ -36,11 +36,9 @@ struct LogInView: View {
                 .padding(.top)
                 
                 if let message = vm.feedbackMessage {
-                    
                     Text(message)
                         .foregroundColor(.red)
                         .padding(.top)
-                    
                 }
                 
                 Spacer()
@@ -58,7 +56,7 @@ struct LogInView: View {
         .task {
             
             if let _ = FirebaseManager.shared.auth.currentUser {
-                await vm.getUserInformation()
+                await FirebaseManager.getUserInformation()
                 if let user = FirebaseManager.shared.loggedInUser {
                     routerManager.push(to: .messageHome(loggedInUser: user))
                 }

@@ -23,6 +23,7 @@ class MessageHomeViewModel: ObservableObject {
         do {
             firestoreListener?.remove()
             try FirebaseManager.shared.auth.signOut()
+            FirebaseManager.shared.loggedInUser = nil
             userSignedOut = true
         } catch {
             print("Error signing out: \(error)")
