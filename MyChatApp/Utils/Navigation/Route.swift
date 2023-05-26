@@ -11,6 +11,7 @@ import SwiftUI
 enum Route {
     case messageHome(loggedInUser: User)
     case chatView(vm: ChatViewModel)
+    case login
 }
 
 extension Route: Hashable {
@@ -22,6 +23,8 @@ extension Route: Hashable {
         case (.messageHome, .messageHome):
             return true
         case (.chatView, .chatView):
+            return true
+        case (.login, .login):
             return true
         default:
             return false
@@ -39,6 +42,8 @@ extension Route: View {
             MessageHomeView(loggedInUser: loggedInUser)
         case .chatView(let vm):
             ChatView(vm: vm)
+        case .login:
+            LogInView()
         }
     }
 }

@@ -18,6 +18,10 @@ final class NavigationRouter: ObservableObject {
     func reset() {
         routes = []
     }
+    func resetToLogin() {
+        routes = []
+        routes.append(.login)
+    }
     
     func goBack() {
         _ = routes.popLast()

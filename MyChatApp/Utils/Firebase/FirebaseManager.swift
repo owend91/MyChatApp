@@ -30,4 +30,18 @@ class FirebaseManager: ObservableObject {
         self.firestore = Firestore.firestore()
         
     }
+    
+    @MainActor
+    static func getUserInformation() async {
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
+        do {
+            let snapshot = try await FirebaseManager.shared.firestore.collection(FirebaseConstants.users).document(uid).getDocument()
+            guard let data = snapshot.data() else { return }
+            
+            FirebaseManager.shared.loggedInUser = User(data: data)
+            
+        } catch {
+            print("Error fetching user info: \(error.localizedDescription)")
+        }
+    }
 }

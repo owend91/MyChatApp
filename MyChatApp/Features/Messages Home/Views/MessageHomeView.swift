@@ -73,7 +73,7 @@ struct MessageHomeView: View {
             })
             .onChange(of: vm.userSignedOut) { _ in
                 if vm.userSignedOut {
-                    routerManager.reset()
+                    routerManager.resetToLogin()
                 }
             }
             .onChange(of: selectedUser, perform: { _ in

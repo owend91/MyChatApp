@@ -13,61 +13,58 @@ struct LogInView: View {
     @State var showRegisterModal = false
     @StateObject var vm = LogInViewModel()
     var body: some View {
-        NavigationStack(path: $routerManager.routes) {
-            ZStack {
-                ColorConstants.background.ignoresSafeArea()
-                VStack {
-                    EmailPasswordForm(email: $vm.email,
-                                      password: $vm.password,
-                                      buttonText: "Log In") {
-                        vm.feedbackMessage = nil
-                        Task {
-                            await vm.loginAccount()
-                            if let user = FirebaseManager.shared.loggedInUser {
-                                routerManager.push(to: .messageHome(loggedInUser: user))
-                            }
+        ZStack {
+            ColorConstants.background.ignoresSafeArea()
+            VStack {
+                EmailPasswordForm(email: $vm.email,
+                                  password: $vm.password,
+                                  buttonText: "Log In") {
+                    vm.feedbackMessage = nil
+                    Task {
+                        await vm.loginAccount()
+                        if let user = FirebaseManager.shared.loggedInUser {
+                            routerManager.push(to: .messageHome(loggedInUser: user))
                         }
                     }
-                                
-                    
-                    Button {
-                        showRegisterModal.toggle()
-                    } label: {
-                        Text("Register?")
-                    }
-                    .padding(.top)
-                    
-                    if let message = vm.feedbackMessage {
-                        
-                            Text(message)
-                                .foregroundColor(.red)
-                                .padding(.top)
-                        
-                    }
-                    
-                    
-                    Spacer()
                 }
-                .padding(.top, 40)
-                .padding(.horizontal)
-
-            }
-            .fullScreenCover(isPresented: $showRegisterModal) {
-                RegisterView(vm: vm)
-            }
-            .navigationTitle("Login")
-            .navigationDestination(for: Route.self) { $0 }
-            .task {
                 
-                if let _ = FirebaseManager.shared.auth.currentUser {
-                    await vm.getUserInformation()
-                    if let user = FirebaseManager.shared.loggedInUser {
-                        routerManager.push(to: .messageHome(loggedInUser: user))
-                    }
+                Button {
+                    showRegisterModal.toggle()
+                } label: {
+                    Text("Register?")
                 }
-                vm.email = ""
-                vm.password = ""
+                .padding(.top)
+                
+                if let message = vm.feedbackMessage {
+                    
+                    Text(message)
+                        .foregroundColor(.red)
+                        .padding(.top)
+                    
+                }
+                
+                Spacer()
             }
+            .padding(.top, 40)
+            .padding(.horizontal)
+            
+        }
+        .fullScreenCover(isPresented: $showRegisterModal) {
+            RegisterView(vm: vm)
+        }
+        .navigationTitle("Login")
+        .navigationBarTitleDisplayMode(.large)
+        .navigationBarBackButtonHidden()
+        .task {
+            
+            if let _ = FirebaseManager.shared.auth.currentUser {
+                await vm.getUserInformation()
+                if let user = FirebaseManager.shared.loggedInUser {
+                    routerManager.push(to: .messageHome(loggedInUser: user))
+                }
+            }
+            vm.email = ""
+            vm.password = ""
         }
     }
 }
