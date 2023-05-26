@@ -140,6 +140,8 @@ struct MessageView: View {
                         case .empty:
                             ProgressView()
                                 .frame(width: 200, height: 200)
+                                .padding(.horizontal)
+                                .padding(.vertical, -10)
                         case .success(let image):
                             image
                                 .resizable()
