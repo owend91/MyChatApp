@@ -10,11 +10,14 @@ import Firebase
 
 class ChatViewModel: ObservableObject {
     @Published var text = ""
-    var backupText = ""
     @Published var chatMessages = [ChatMessage]()
     @Published var chatCount = 0
-    var firestoreListener: ListenerRegistration?
+    @Published var pictureForMessage: UIImage?
+    
     let chattingWithUser: User
+    var firestoreListener: ListenerRegistration?
+    var backupText = ""
+    
     
     init(chattingWithUser: User) {
         self.chattingWithUser = chattingWithUser
@@ -30,11 +33,13 @@ class ChatViewModel: ObservableObject {
             .document(fromId)
             .collection(toId)
             .document()
+        let imageUrl = await storeMessageImage()
         
         let messageData = [FirebaseConstants.fromId: fromId,
                            FirebaseConstants.toId: toId,
                            FirebaseConstants.text: text,
-                           FirebaseConstants.timestamp: Timestamp()] as [String: Any]
+                           FirebaseConstants.timestamp: Timestamp(),
+                           FirebaseConstants.messageImage: imageUrl?.absoluteString as? String ?? ""] as [String: Any]
         
         let chatPartnerMessage = FirebaseManager.shared.firestore
             .collection(FirebaseConstants.chatMessages)
@@ -46,9 +51,10 @@ class ChatViewModel: ObservableObject {
         do {
             backupText = text
             text = ""
+            pictureForMessage = nil
             try await currentUserMessage.setData(messageData)
             try await chatPartnerMessage.setData(messageData)
-            await saveRecentMessage()
+            await saveRecentMessage(imageUrl: imageUrl)
             backupText = ""
             
         } catch {
@@ -56,7 +62,7 @@ class ChatViewModel: ObservableObject {
         }
     }
     
-    func saveRecentMessage() async {
+    func saveRecentMessage(imageUrl: URL?) async {
         guard let fromId = FirebaseManager.shared.loggedInUser?.uid else { return }
         let toId = chattingWithUser.uid
         
@@ -66,13 +72,14 @@ class ChatViewModel: ObservableObject {
             .collection(FirebaseConstants.messages)
             .document(toId)
         
-
+        
         let dataForCurrentUser = [FirebaseConstants.fromId: fromId,
-                    FirebaseConstants.toId: toId,
-                    FirebaseConstants.email: chattingWithUser.email,
-                    FirebaseConstants.text: backupText,
+                                  FirebaseConstants.toId: toId,
+                                  FirebaseConstants.email: chattingWithUser.email,
+                                  FirebaseConstants.text: backupText,
                                   FirebaseConstants.profileImageUrl: chattingWithUser.profileImageUrl?.absoluteString as? String ?? "",
-                                  FirebaseConstants.timestamp: Timestamp() ] as [String: Any]
+                                  FirebaseConstants.timestamp: Timestamp(),
+                                  FirebaseConstants.messageImage: imageUrl?.absoluteString as? String ?? ""] as [String: Any]
         
         let chattingWithUserDocument = FirebaseManager.shared.firestore
             .collection(FirebaseConstants.recentMessage)
@@ -80,13 +87,14 @@ class ChatViewModel: ObservableObject {
             .collection(FirebaseConstants.messages)
             .document(fromId)
         
-
+        
         let dataForChattingWithUser = [FirebaseConstants.fromId: fromId,
-                    FirebaseConstants.toId: toId,
-                    FirebaseConstants.email: FirebaseManager.shared.loggedInUser?.email as? String ?? "",
-                    FirebaseConstants.text: backupText,
-                    FirebaseConstants.profileImageUrl: FirebaseManager.shared.loggedInUser?.profileImageUrl?.absoluteString as? String ?? "",
-                                  FirebaseConstants.timestamp: Timestamp() ] as [String: Any]
+                                       FirebaseConstants.toId: toId,
+                                       FirebaseConstants.email: FirebaseManager.shared.loggedInUser?.email as? String ?? "",
+                                       FirebaseConstants.text: backupText,
+                                       FirebaseConstants.profileImageUrl: FirebaseManager.shared.loggedInUser?.profileImageUrl?.absoluteString as? String ?? "",
+                                       FirebaseConstants.timestamp: Timestamp(),
+                                       FirebaseConstants.messageImage: imageUrl?.absoluteString as? String ?? ""] as [String: Any]
         
         do {
             try await currentUserDocument.setData(dataForCurrentUser)
@@ -101,7 +109,7 @@ class ChatViewModel: ObservableObject {
         guard let fromId = FirebaseManager.shared.loggedInUser?.uid else { return }
         let toId = chattingWithUser.uid
         chatMessages.removeAll()
-
+        
         firestoreListener = FirebaseManager
             .shared
             .firestore
@@ -131,6 +139,26 @@ class ChatViewModel: ObservableObject {
                     print("incremented counter: \(self.chatCount)")
                 }
             }
+    }
+    
+    @MainActor
+    func storeMessageImage() async -> URL? {
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return nil }
+        guard let image = pictureForMessage else { return nil }
+        
+        do {
+            let ref = FirebaseManager.shared.storage
+                .reference(withPath: "\(uid)_\(image.hash)")
+            
+            guard let imageData = image.jpegData(compressionQuality: 0.2) else { return nil }
+            
+            let _ = try await ref.putDataAsync(imageData)
+            return try await ref.downloadURL()
+            
+        } catch {
+            print("Failed to push message image to storage: \(error)")
+            return nil
+        }
     }
     
     

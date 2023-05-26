@@ -11,6 +11,7 @@ struct ChatView: View {
 //    let userChattingWith: User
     @ObservedObject var vm: ChatViewModel
     @State var initialMessageLoad = true
+    @State var shouldShowImagePIcker = false
     var body: some View {
         VStack {
             chatMessages
@@ -37,13 +38,37 @@ extension ChatView {
     
     private var chatBottomBar: some View {
         HStack(spacing: 16) {
-            Image(systemName: "photo.on.rectangle")
-                .font(.system(size: 24))
-                .foregroundColor(Color(.darkGray))
+            Button {
+                shouldShowImagePIcker.toggle()
+            } label: {
+                Image(systemName: "photo.on.rectangle")
+                    .font(.system(size: 24))
+                    .foregroundColor(Color(.darkGray))
+            }
+            .fullScreenCover(isPresented: $shouldShowImagePIcker) {
+                ImagePicker(image: $vm.pictureForMessage)
+            }
+            
+            
+
             ZStack {
-                descriptionPlaceholder
-                TextEditor(text: $vm.text)
-                    .opacity(vm.text.isEmpty ? 0.5 : 1)
+                if let image = vm.pictureForMessage {
+                    HStack {
+                        Spacer()
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 60, height: 60)
+                        Spacer()
+                    }
+                    .onTapGesture {
+                        vm.pictureForMessage = nil
+                    }
+                } else {
+                    descriptionPlaceholder
+                    TextEditor(text: $vm.text)
+                        .opacity(vm.text.isEmpty ? 0.5 : 1)
+                }
             }
             .frame(height: 40)
             
@@ -55,6 +80,7 @@ extension ChatView {
                 Text("Send")
             }
             .buttonStyle(.borderedProminent)
+            .disabled(vm.text.isEmpty && vm.pictureForMessage == nil)
         }
         .padding()
     }
@@ -74,11 +100,6 @@ extension ChatView {
                     .id("BOTTOM")
                     .onReceive(vm.$chatCount) { _ in
                         if initialMessageLoad {
-//                            print("INitial load")
-//                            withAnimation(.) {
-//                                scrollViewProxy.scrollTo("BOTTOM")
-//
-//                            }
                             initialMessageLoad = false
                         } else {
                             withAnimation(.easeOut(duration: 0.5)) {
@@ -89,8 +110,6 @@ extension ChatView {
                 }
             }
             .padding(.top, 1)
-            
-            
         }
     }
     
@@ -114,15 +133,41 @@ struct MessageView: View {
             if message.fromId == FirebaseManager.shared.loggedInUser?.uid {
                 Spacer()
             }
-            Text(message.text)
-                .padding()
-                .background { message.fromId == userChattingWith.uid ? Color.white : Color.blue }
-                .foregroundColor(message.fromId == userChattingWith.uid ? Color.black : Color.white)
-                .cornerRadius(10)
+            Group {
+                if let imageUrl = message.imageUrl {
+                    AsyncImage(url: imageUrl) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .frame(width: 200, height: 200)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .cornerRadius(10)
+                                .frame(width: 200, height: 200)
+                                .padding(.horizontal)
+                                .padding(.vertical, -10)
+                            
+                        case .failure:
+                            Image(systemName: "photo")
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                } else {
+                    Text(message.text)
+                        .padding()
+
+                }
+            }
+            .background { message.fromId == userChattingWith.uid ? Color.white : Color.blue }
+            .foregroundColor(message.fromId == userChattingWith.uid ? Color.black : Color.white)
+            .cornerRadius(10)
             if message.fromId == userChattingWith.uid {
                 Spacer()
             }
-
+            
         }
         .padding(.horizontal)
         .padding(.top, 8)

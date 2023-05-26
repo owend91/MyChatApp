@@ -14,15 +14,30 @@ struct RecentMessage: Identifiable, Hashable {
     let text, fromId, toId: String
     let email, profileImageUrl: String
     let timestamp: Timestamp
+    let imageUrl: URL?
     
     init(documentId: String, data: [String: Any]) {
         self.documentId = documentId
-        self.text = data[FirebaseConstants.text] as? String ?? ""
+        var tempText = data[FirebaseConstants.text] as? String ?? ""
         self.timestamp = data[FirebaseConstants.timestamp] as? Timestamp ?? Timestamp(date: Date())
         self.fromId = data[FirebaseConstants.fromId] as? String ?? ""
         self.toId = data[FirebaseConstants.toId] as? String ?? ""
         self.email = data[FirebaseConstants.email] as? String ?? ""
         self.profileImageUrl = data[FirebaseConstants.profileImageUrl] as? String ?? ""
+        let imgUrl = data[FirebaseConstants.messageImage] as? String ?? ""
+        if imgUrl.isEmpty {
+            imageUrl = nil
+        } else {
+            imageUrl = URL(string: imgUrl)
+            if let currUserUid = FirebaseManager.shared.loggedInUser?.uid {
+                if currUserUid == fromId {
+                    tempText = "Image Sent"
+                } else {
+                    tempText = "Image Received"
+                }
+            }
+        }
+        self.text = tempText
     }
     
     var username: String {

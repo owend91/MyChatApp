@@ -21,6 +21,7 @@ class MessageHomeViewModel: ObservableObject {
     
     func handleSignOut() {
         do {
+            firestoreListener?.remove()
             try FirebaseManager.shared.auth.signOut()
             userSignedOut = true
         } catch {
@@ -31,6 +32,7 @@ class MessageHomeViewModel: ObservableObject {
     func getAllRecentMessages() {
         guard let currentUser = FirebaseManager.shared.loggedInUser else { return }
         recentMessages.removeAll()
+        firestoreListener?.remove()
         
         
         firestoreListener = FirebaseManager

@@ -14,6 +14,7 @@ struct ChatMessage: Identifiable {
     let fromId: String
     let toId: String
     let text: String
+    let imageUrl: URL?
     
     var isSentByCurrUser: Bool {
         guard let currUserId = FirebaseManager.shared.auth.currentUser?.uid else { return false }
@@ -30,12 +31,19 @@ struct ChatMessage: Identifiable {
         fromId = data[FirebaseConstants.fromId] as? String ?? ""
         toId = data[FirebaseConstants.toId] as? String ?? ""
         text = data[FirebaseConstants.text] as? String ?? ""
+        let imgUrl = data[FirebaseConstants.messageImage] as? String ?? ""
+        if imgUrl.isEmpty {
+            imageUrl = nil
+        } else {
+            imageUrl = URL(string: imgUrl)
+        }
     }
     init(documentId: String, fromId: String, toId: String, text: String) {
         self.documentId = documentId
         self.fromId = fromId
         self.toId = toId
         self.text = text
+        imageUrl = nil
     }
 }
 
