@@ -11,6 +11,7 @@ import Firebase
 class ChatViewModel: ObservableObject {
     @Published var text = ""
     @Published var chatMessages = [ChatMessage]()
+    @Published var chatCount = 0
     var firestoreListener: ListenerRegistration?
     let chattingWithUser: User
     
@@ -39,10 +40,9 @@ class ChatViewModel: ObservableObject {
         
         
         do {
+            text = ""
             try await currentUserMessage.setData(messageData)
             try await chatPartnerMessage.setData(messageData)
-            text = ""
-            
         } catch {
             print("Error saving message: \(error)")
         }
@@ -52,7 +52,7 @@ class ChatViewModel: ObservableObject {
         guard let fromId = FirebaseManager.shared.loggedInUser?.uid else { return }
         let toId = chattingWithUser.uid
         chatMessages.removeAll()
-        
+
         firestoreListener = FirebaseManager
             .shared
             .firestore
@@ -67,21 +67,21 @@ class ChatViewModel: ObservableObject {
                 }
                 
                 querySnapshot?.documentChanges.forEach({ documentChange in
+                    print("document change")
                     if documentChange.type == .added {
                         let data = documentChange.document.data()
                         let documentId = documentChange.document.documentID
                         
                         let message = ChatMessage(documentId: documentId, data: data)
                         self.chatMessages.append(message)
-
-
-                        
                     }
                 })
                 
-//                DispatchQueue.main.async{
-//                    self.count += 1
-//                }
+                DispatchQueue.main.async{
+                    self.chatCount += 1
+                    print("incremented counter: \(self.chatCount)")
+
+                }
                 
                 
             }

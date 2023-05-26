@@ -10,11 +10,15 @@ import SwiftUI
 struct ChatView: View {
 //    let userChattingWith: User
     @ObservedObject var vm: ChatViewModel
+    @State var initialMessageLoad = true
     var body: some View {
         VStack {
             chatMessages
             chatBottomBar
             
+        }
+        .onDisappear {
+            vm.firestoreListener?.remove()
         }
         .navigationTitle(vm.chattingWithUser.email)
         .navigationBarTitleDisplayMode(.inline)
@@ -59,11 +63,29 @@ extension ChatView {
         ZStack {
             ColorConstants.background
             ScrollView {
-                ForEach(vm.chatMessages) { message in
-                    MessageView(message: message, userChattingWith: vm.chattingWithUser)
-                }
-                HStack {
-                    Spacer()
+                ScrollViewReader { scrollViewProxy in
+                    ForEach(vm.chatMessages) { message in
+                        MessageView(message: message, userChattingWith: vm.chattingWithUser)
+                    }
+                    HStack {
+                        Spacer()
+                    }
+                    .frame(width: 1, height: 1)
+                    .id("BOTTOM")
+                    .onReceive(vm.$chatCount) { _ in
+                        if initialMessageLoad {
+//                            print("INitial load")
+//                            withAnimation(.) {
+//                                scrollViewProxy.scrollTo("BOTTOM")
+//
+//                            }
+                            initialMessageLoad = false
+                        } else {
+                            withAnimation(.easeOut(duration: 0.5)) {
+                                scrollViewProxy.scrollTo("BOTTOM")
+                            }
+                        }
+                    }
                 }
             }
             .padding(.top, 1)
