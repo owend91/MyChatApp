@@ -30,12 +30,12 @@ class LogInViewModel: ObservableObject {
             if profileImage == nil {
                 await storeUserInformation(profileImageUrl: URL(string: "www.google.com")! )
                 
-                FirebaseManager.shared.loggedInUser = User(uid: result.user.uid, email: email, profileImageUrl: URL(string: "www.google.com")!)
+                FirebaseManager.shared.loggedInUser = User(uid: result.user.uid, email: email, profileImageUrl: URL(string: "www.google.com")!, fcmToken: FirebaseManager.shared.fcmToken ?? "")
                 loginRegisterPressed = false
             } else if let url = await storeProfileImage() {
                 await storeUserInformation(profileImageUrl: url)
                 
-                FirebaseManager.shared.loggedInUser = User(uid: result.user.uid, email: email, profileImageUrl: url)
+                FirebaseManager.shared.loggedInUser = User(uid: result.user.uid, email: email, profileImageUrl: url, fcmToken: FirebaseManager.shared.fcmToken ?? "")
                 loginRegisterPressed = false
             }
             loginRegisterPressed = false
@@ -84,7 +84,8 @@ class LogInViewModel: ObservableObject {
         guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
         let userData = [FirebaseConstants.email: email,
                         FirebaseConstants.uid: uid,
-                        FirebaseConstants.profileImageUrl: profileImageUrl.absoluteString]
+                        FirebaseConstants.profileImageUrl: profileImageUrl.absoluteString,
+                        FirebaseConstants.fcmToken: FirebaseManager.shared.fcmToken ?? ""]
         do {
             try await FirebaseManager.shared.firestore
                 .collection(FirebaseConstants.users)

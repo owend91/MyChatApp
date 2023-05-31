@@ -31,7 +31,7 @@ struct EmailPasswordForm: View {
                 HStack {
                     Spacer()
                     Text(buttonText)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                     Spacer()
                 }
                 .padding(8)

@@ -25,7 +25,9 @@ struct MessageHomeView: View {
                 ScrollView {
                     ForEach(vm.recentMessages) { rm in
                         Button {
-                            selectedUser = User(recentMessage: rm)
+                            Task {
+                                selectedUser = await User(recentMessage: rm)
+                            }
                         } label: {
                             HStack {
                                 UserAvatarCircleView(url: URL(string: rm.profileImageUrl), dimension: 50, showShadow: false)
@@ -99,7 +101,7 @@ struct MessageHomeView: View {
 
 struct MessageHomeView_Previews: PreviewProvider {
     static var previews: some View {
-        MessageHomeView(loggedInUser: User(uid: "KZxy244JOkZrObXFsruHAyCsdlw2", email: "user2@gmail.com", profileImageUrl: URL(string: "https://firebasestorage.googleapis.com:443/v0/b/mychatapp-fe585.appspot.com/o/KZxy244JOkZrObXFsruHAyCsdlw2?alt=media&token=b4f16880-b2b4-43bd-b38f-9d3b7b19e330")))
+        MessageHomeView(loggedInUser: User(uid: "KZxy244JOkZrObXFsruHAyCsdlw2", email: "user2@gmail.com", profileImageUrl: URL(string: "https://firebasestorage.googleapis.com:443/v0/b/mychatapp-fe585.appspot.com/o/KZxy244JOkZrObXFsruHAyCsdlw2?alt=media&token=b4f16880-b2b4-43bd-b38f-9d3b7b19e330"), fcmToken: ""))
     }
 }
 

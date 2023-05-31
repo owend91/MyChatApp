@@ -16,7 +16,6 @@ struct ChatView: View {
         VStack {
             chatMessages
             chatBottomBar
-            
         }
         .onDisappear {
             vm.firestoreListener?.remove()

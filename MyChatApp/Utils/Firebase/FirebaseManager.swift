@@ -12,6 +12,7 @@ import FirebaseFirestore
 
 class FirebaseManager: ObservableObject {
     @Published var loggedInUser: User?
+    @Published var fcmToken: String?
 
     static let shared = FirebaseManager()
     
@@ -20,7 +21,7 @@ class FirebaseManager: ObservableObject {
     let firestore: Firestore
     
     init() {
-        FirebaseApp.configure()
+//        FirebaseApp.configure()
         
         self.auth = Auth.auth()
         self.storage = Storage.storage()
@@ -46,6 +47,24 @@ class FirebaseManager: ObservableObject {
             
         } catch {
             print("Error fetching user info: \(error.localizedDescription)")
+        }
+    }
+    
+    @MainActor
+    static func getUsersFcmToken(uid: String) async -> String {
+        do {
+            let snapshot = try await FirebaseManager.shared.firestore.collection(FirebaseConstants.users).document(uid).getDocument()
+            print("user snapshot received")
+            guard let data = snapshot.data() else {
+                print("error with data")
+                return ""
+            }
+            
+            return data[FirebaseConstants.fcmToken] as? String ?? ""
+            
+        } catch {
+            print("Error fetching users fcm token: \(error.localizedDescription)")
+            return ""
         }
     }
 }

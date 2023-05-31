@@ -5,8 +5,9 @@
 //  Created by David Owen on 5/26/23.
 //
 
-import Foundation
+import SwiftUI
 import Firebase
+import FirebaseFirestore
 
 class ChatViewModel: ObservableObject {
     @Published var text = ""
@@ -26,7 +27,8 @@ class ChatViewModel: ObservableObject {
     
     @MainActor
     func sendMessage() async {
-        guard let fromId = FirebaseManager.shared.loggedInUser?.uid else { return }
+        guard let loggedInUser = FirebaseManager.shared.loggedInUser else { return }
+        let fromId = loggedInUser.uid
         let toId = chattingWithUser.uid
         let currentUserMessage = FirebaseManager.shared.firestore
             .collection(FirebaseConstants.chatMessages)
@@ -55,6 +57,7 @@ class ChatViewModel: ObservableObject {
             try await currentUserMessage.setData(messageData)
             try await chatPartnerMessage.setData(messageData)
             await saveRecentMessage(imageUrl: imageUrl)
+            await sendPushNotification(fromUser: loggedInUser.userName, message: backupText, deviceToken: chattingWithUser.fcmToken)
             backupText = ""
             
         } catch {
@@ -161,5 +164,36 @@ class ChatViewModel: ObservableObject {
         }
     }
     
-    
+    func sendPushNotification(fromUser: String, message: String, deviceToken: String) async {
+        guard let url = URL(string: "https://fcm.googleapis.com/fcm/send") else {
+            return
+        }
+        let json: [String: Any] = [
+            "to": deviceToken,
+            "notification" : [
+                "title": fromUser,
+                "body": message.isEmpty ? "Picture Received" : message
+            ]
+//            Dont pass empty or remove the block
+//            ,"data": [
+//                //data to be sent...
+//            ]
+
+        ]
+        
+        let serverKey = ""
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = try? JSONSerialization.data(withJSONObject: json, options: [.prettyPrinted])
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("key=\(serverKey)", forHTTPHeaderField: "Authorization")
+
+        let session = URLSession(configuration: .default)
+        do {
+            let (_, _ ) = try await session.data(for: request)
+        } catch {
+            print("Error sending push notification: \(error)")
+        }
+    }
 }
