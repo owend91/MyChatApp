@@ -181,7 +181,7 @@ class ChatViewModel: ObservableObject {
 
         ]
         
-        let serverKey = ""
+        let serverKey = FirebaseKeys.fcmKey
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
