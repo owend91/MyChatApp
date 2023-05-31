@@ -6,7 +6,7 @@
 **/node_modules/*
 **/.firebaserc
 *GoogleService-Info.plist
-*FirebaseKeys
+*FirebaseKeys*
 
 ### Firebase Patch ###
 .runtimeconfig.json
