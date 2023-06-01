@@ -8,14 +8,58 @@
 import SwiftUI
 
 struct ChatView: View {
-//    let userChattingWith: User
     @ObservedObject var vm: ChatViewModel
     @State var initialMessageLoad = true
-    @State var shouldShowImagePIcker = false
+    @State var shouldShowImagePicker = false
+    @State var selectedMessage: ChatMessage?
+
+    
     var body: some View {
-        VStack {
-            chatMessages
-            chatBottomBar
+        ZStack {
+            VStack {
+                chatMessages
+                if selectedMessage != nil {
+                    Color(.darkGray)
+                        .opacity(0.2)
+                }
+                chatBottomBar
+            }
+            .blur(radius: selectedMessage == nil ? 0 : 75)
+            if let selectedMessage {
+                HStack {
+                    Spacer()
+                    MessageView(message: selectedMessage, userChattingWith: vm.chattingWithUser, centerMessage: true)
+                        .overlay(alignment: .top , content: {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 60)
+                                    .foregroundColor(.gray)
+                                    .frame(width: 200, height: 40)
+                                HStack {
+                                    Button {
+                                        Task {
+                                            await vm.updateMessageReaction(reaction: .like, message: selectedMessage)
+                                                self.selectedMessage = nil
+                                        }
+                                    } label: {
+                                        Image(systemName: "hand.thumbsup.fill")
+                                            .foregroundColor(Color(.white))
+                                    }
+                                }
+                                
+                            }
+                            .frame(width: 30, height: 30)
+                            .offset(x: 0, y: -35)
+                            
+                            
+                        })
+                    Spacer()
+                }
+                
+            }
+            
+        }
+        .onTapGesture {
+            selectedMessage = nil
         }
         .onDisappear {
             vm.firestoreListener?.remove()
@@ -26,11 +70,13 @@ struct ChatView: View {
 }
 
 struct ChatView_Previews: PreviewProvider {
+ 
     static var previews: some View {
         NavigationStack {
             ChatView(vm: ChatViewModel(chattingWithUser: User.sampleMessagingUser))
-        }
+        } 
     }
+    
 }
 
 extension ChatView {
@@ -38,13 +84,13 @@ extension ChatView {
     private var chatBottomBar: some View {
         HStack(spacing: 16) {
             Button {
-                shouldShowImagePIcker.toggle()
+                shouldShowImagePicker.toggle()
             } label: {
                 Image(systemName: "photo.on.rectangle")
                     .font(.system(size: 24))
                     .foregroundColor(Color(.darkGray))
             }
-            .fullScreenCover(isPresented: $shouldShowImagePIcker) {
+            .fullScreenCover(isPresented: $shouldShowImagePicker) {
                 ImagePicker(image: $vm.pictureForMessage)
             }
             
@@ -91,6 +137,12 @@ extension ChatView {
                 ScrollViewReader { scrollViewProxy in
                     ForEach(vm.chatMessages) { message in
                         MessageView(message: message, userChattingWith: vm.chattingWithUser)
+                            .onLongPressGesture {
+                                withAnimation {
+                                    selectedMessage = message
+                                }
+                            }
+                            
                     }
                     HStack {
                         Spacer()
@@ -124,53 +176,4 @@ extension ChatView {
     }
 }
 
-struct MessageView: View {
-    let message: ChatMessage
-    let userChattingWith: User
-    var body: some View {
-        HStack {
-            if message.fromId == FirebaseManager.shared.loggedInUser?.uid {
-                Spacer()
-            }
-            Group {
-                if let imageUrl = message.imageUrl {
-                    AsyncImage(url: imageUrl) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(width: 200, height: 200)
-                                .padding(.horizontal)
-                                .padding(.vertical, -10)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .cornerRadius(10)
-                                .frame(width: 200, height: 200)
-                                .padding(.horizontal)
-                                .padding(.vertical, -10)
-                            
-                        case .failure:
-                            Image(systemName: "photo")
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                } else {
-                    Text(message.text)
-                        .padding()
 
-                }
-            }
-            .background { message.fromId == userChattingWith.uid ? Color.white : Color.blue }
-            .foregroundColor(message.fromId == userChattingWith.uid ? Color.black : Color.white)
-            .cornerRadius(10)
-            if message.fromId == userChattingWith.uid {
-                Spacer()
-            }
-            
-        }
-        .padding(.horizontal)
-        .padding(.top, 8)
-    }
-}

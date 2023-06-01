@@ -21,5 +21,8 @@ struct FirebaseConstants {
     static let messages = "messages"
     static let messageImage = "messageImage"
     static let fcmToken = "fcmToken"
+    static let chatReaction = "chatReaction"
+    static let reciprocalMessageId = "reciprocalMessageId"
+
 
 }

@@ -35,27 +35,38 @@ class ChatViewModel: ObservableObject {
             .document(fromId)
             .collection(toId)
             .document()
-        let imageUrl = await storeMessageImage()
-        
-        let messageData = [FirebaseConstants.fromId: fromId,
-                           FirebaseConstants.toId: toId,
-                           FirebaseConstants.text: text,
-                           FirebaseConstants.timestamp: Timestamp(),
-                           FirebaseConstants.messageImage: imageUrl?.absoluteString as? String ?? ""] as [String: Any]
-        
         let chatPartnerMessage = FirebaseManager.shared.firestore
             .collection(FirebaseConstants.chatMessages)
             .document(toId)
             .collection(fromId)
             .document()
+        let imageUrl = await storeMessageImage()
+
+        
+        let currentUserMessageData = [FirebaseConstants.fromId: fromId,
+                           FirebaseConstants.toId: toId,
+                           FirebaseConstants.text: text,
+                           FirebaseConstants.timestamp: Timestamp(),
+                           FirebaseConstants.messageImage: imageUrl?.absoluteString as? String ?? "",
+                           FirebaseConstants.reciprocalMessageId: chatPartnerMessage.documentID] as [String: Any]
+        
+        let chatPartnerMessageData = [FirebaseConstants.fromId: fromId,
+                           FirebaseConstants.toId: toId,
+                           FirebaseConstants.text: text,
+                           FirebaseConstants.timestamp: Timestamp(),
+                           FirebaseConstants.messageImage: imageUrl?.absoluteString as? String ?? "",
+                           FirebaseConstants.reciprocalMessageId: currentUserMessage.documentID] as [String: Any]
+        
+        
+
         
         
         do {
             backupText = text
             text = ""
             pictureForMessage = nil
-            try await currentUserMessage.setData(messageData)
-            try await chatPartnerMessage.setData(messageData)
+            try await currentUserMessage.setData(currentUserMessageData)
+            try await chatPartnerMessage.setData(chatPartnerMessageData)
             await saveRecentMessage(imageUrl: imageUrl)
             await sendPushNotification(fromUser: loggedInUser.userName, message: backupText, deviceToken: chattingWithUser.fcmToken)
             backupText = ""
@@ -75,6 +86,12 @@ class ChatViewModel: ObservableObject {
             .collection(FirebaseConstants.messages)
             .document(toId)
         
+        let chattingWithUserDocument = FirebaseManager.shared.firestore
+            .collection(FirebaseConstants.recentMessage)
+            .document(toId)
+            .collection(FirebaseConstants.messages)
+            .document(fromId)
+        
         
         let dataForCurrentUser = [FirebaseConstants.fromId: fromId,
                                   FirebaseConstants.toId: toId,
@@ -84,11 +101,7 @@ class ChatViewModel: ObservableObject {
                                   FirebaseConstants.timestamp: Timestamp(),
                                   FirebaseConstants.messageImage: imageUrl?.absoluteString as? String ?? ""] as [String: Any]
         
-        let chattingWithUserDocument = FirebaseManager.shared.firestore
-            .collection(FirebaseConstants.recentMessage)
-            .document(toId)
-            .collection(FirebaseConstants.messages)
-            .document(fromId)
+
         
         
         let dataForChattingWithUser = [FirebaseConstants.fromId: fromId,
@@ -102,6 +115,7 @@ class ChatViewModel: ObservableObject {
         do {
             try await currentUserDocument.setData(dataForCurrentUser)
             try await chattingWithUserDocument.setData(dataForChattingWithUser)
+            
         } catch {
             print("Error saving recent message: \(error)")
         }
@@ -134,6 +148,15 @@ class ChatViewModel: ObservableObject {
                         
                         let message = ChatMessage(documentId: documentId, data: data)
                         self.chatMessages.append(message)
+                    } else if documentChange.type == .modified {
+                        let data = documentChange.document.data()
+                        let documentId = documentChange.document.documentID
+                        let message = ChatMessage(documentId: documentId, data: data)
+                        
+                        if let index = self.chatMessages.firstIndex(where: {$0.documentId == documentId}) {
+                            self.chatMessages[index] = message
+                        }
+                        
                     }
                 })
                 
@@ -194,6 +217,45 @@ class ChatViewModel: ObservableObject {
             let (_, _ ) = try await session.data(for: request)
         } catch {
             print("Error sending push notification: \(error)")
+        }
+    }
+    
+    func updateMessageReaction(reaction: ChatReaction, message: ChatMessage) async {
+        guard let loggedInUser = FirebaseManager.shared.loggedInUser else { return }
+        var currentUserMessage: DocumentReference? = nil
+        var chatPartnerMessage: DocumentReference? = nil
+        if message.fromId == loggedInUser.uid {
+            currentUserMessage = FirebaseManager.shared.firestore
+                .collection(FirebaseConstants.chatMessages)
+                .document(message.fromId)
+                .collection(message.toId)
+                .document(message.documentId)
+            chatPartnerMessage = FirebaseManager.shared.firestore
+                .collection(FirebaseConstants.chatMessages)
+                .document(message.toId)
+                .collection(message.fromId)
+                .document(message.reciprocalMessageId)
+        } else {
+            currentUserMessage = FirebaseManager.shared.firestore
+                .collection(FirebaseConstants.chatMessages)
+                .document(message.toId)
+                .collection(message.fromId)
+                .document(message.documentId)
+            chatPartnerMessage = FirebaseManager.shared.firestore
+                .collection(FirebaseConstants.chatMessages)
+                .document(message.fromId)
+                .collection(message.toId)
+                .document(message.reciprocalMessageId)
+        }
+        
+        do {
+            if let currentUserMessage = currentUserMessage, let chatPartnerMessage = chatPartnerMessage {
+                let reactionVal = message.reaction == reaction ? ChatReaction.none.rawValue : reaction.rawValue
+                try await currentUserMessage.setData([FirebaseConstants.chatReaction : reactionVal], mergeFields: [FirebaseConstants.chatReaction])
+                try await chatPartnerMessage.setData([FirebaseConstants.chatReaction : reactionVal], mergeFields: [FirebaseConstants.chatReaction])
+            }
+        } catch {
+            print("Error reacting to a message: \(error)")
         }
     }
 }
