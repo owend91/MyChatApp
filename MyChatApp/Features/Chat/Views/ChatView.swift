@@ -26,6 +26,9 @@ struct ChatView: View {
                 chatBottomBar
             }
             .blur(radius: selectedMessage == nil ? 0 : 75)
+            .onTapGesture {
+                selectedMessage = nil
+            }
             if let selectedMessage {
                 HStack {
                     Spacer()
@@ -50,7 +53,6 @@ struct ChatView: View {
                                         }
                                     }
                                 }
-                                
                             }
                             .frame(width: 30, height: 30)
                             .offset(x: 0, y: -35)
@@ -59,9 +61,7 @@ struct ChatView: View {
                 }
             }
         }
-        .onTapGesture {
-            selectedMessage = nil
-        }
+
         .onDisappear {
             vm.firestoreListener?.remove()
         }
@@ -146,7 +146,6 @@ extension ChatView {
                                     }
                                 }
                             }
-                            
                     }
                     HStack {
                         Spacer()
