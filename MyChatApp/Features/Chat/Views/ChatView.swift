@@ -12,6 +12,7 @@ struct ChatView: View {
     @State var initialMessageLoad = true
     @State var shouldShowImagePicker = false
     @State var selectedMessage: ChatMessage?
+    let haptics = UIImpactFeedbackGenerator(style: .medium)
 
     
     var body: some View {
@@ -34,29 +35,29 @@ struct ChatView: View {
                                 RoundedRectangle(cornerRadius: 60)
                                     .foregroundColor(.gray)
                                     .frame(width: 200, height: 40)
-                                HStack {
-                                    Button {
-                                        Task {
-                                            await vm.updateMessageReaction(reaction: .like, message: selectedMessage)
-                                                self.selectedMessage = nil
+                                HStack(spacing: 15) {
+                                    ForEach(ChatReaction.allCases, id: \.self) { reaction in
+                                        if reaction != .none {
+                                            Button {
+                                                Task {
+                                                    await vm.updateMessageReaction(reaction: reaction, message: selectedMessage)
+                                                    self.selectedMessage = nil
+                                                }
+                                            } label: {
+                                                Image(systemName: reaction.getSfSymbol())
+                                                    .foregroundColor(Color(.white))
+                                            }
                                         }
-                                    } label: {
-                                        Image(systemName: "hand.thumbsup.fill")
-                                            .foregroundColor(Color(.white))
                                     }
                                 }
                                 
                             }
                             .frame(width: 30, height: 30)
                             .offset(x: 0, y: -35)
-                            
-                            
                         })
                     Spacer()
                 }
-                
             }
-            
         }
         .onTapGesture {
             selectedMessage = nil
@@ -138,8 +139,11 @@ extension ChatView {
                     ForEach(vm.chatMessages) { message in
                         MessageView(message: message, userChattingWith: vm.chattingWithUser)
                             .onLongPressGesture {
-                                withAnimation {
-                                    selectedMessage = message
+                                if !message.isSentByCurrUser {
+                                    withAnimation {
+                                        haptics.impactOccurred()
+                                        selectedMessage = message
+                                    }
                                 }
                             }
                             

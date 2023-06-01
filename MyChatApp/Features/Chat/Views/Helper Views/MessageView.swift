@@ -58,7 +58,7 @@ struct MessageView: View {
                     ZStack {
                         Circle()
                             .foregroundColor(.gray)
-                        Image(systemName: "hand.thumbsup.fill")
+                        Image(systemName: message.reaction.getSfSymbol())
                             .foregroundColor(Color(.white))
                         
                     }

@@ -7,9 +7,31 @@
 
 import Foundation
 
-enum ChatReaction: String {
+enum ChatReaction: String, CaseIterable {
     case none
     case like
+    case dislike
+    case love
+    case enthuse
+    case question
+    
+    func getSfSymbol() -> String {
+        switch self {
+            
+        case .none:
+            return ""
+        case .like:
+            return "hand.thumbsup.fill"
+        case .dislike:
+            return "hand.thumbsdown.fill"
+        case .love:
+            return "heart.fill"
+        case .enthuse:
+            return "exclamationmark.circle.fill"
+        case .question:
+            return "questionmark.circle.fill"
+        }
+    }
 }
 
 struct ChatMessage: Identifiable {
