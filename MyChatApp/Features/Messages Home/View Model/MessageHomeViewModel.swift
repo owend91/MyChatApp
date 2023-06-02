@@ -11,6 +11,7 @@ import Firebase
 class MessageHomeViewModel: ObservableObject {
     @Published var userSignedOut = false
     @Published var recentMessages: [RecentMessage] = []
+    @Published var newProfileImage: UIImage?
     private var firestoreListener: ListenerRegistration?
     
     
@@ -58,5 +59,65 @@ class MessageHomeViewModel: ObservableObject {
                     
                 })
             }
+    }
+    
+    @MainActor
+    func updateAvatar() async -> URL? {
+//        WILL USE THIS LATER! Want to store profile images to local storage
+//        await deleteOldProfileImage()
+        if let url = await storeProfileImage() {
+            await updateProfileInformation(profileImageUrl: url)
+            return url
+        }
+        return nil
+    }
+    
+    @MainActor
+    func deleteOldProfileImage() async {
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
+        
+        do {
+            let ref = FirebaseManager.shared.storage
+                .reference(withPath: uid)
+            try await ref.delete()
+            
+        } catch {
+            print("Failed to delete profile image from storage: \(error)")
+            return
+        }
+    }
+    
+    @MainActor
+    func storeProfileImage() async -> URL? {
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return nil }
+        
+        do {
+            let ref = FirebaseManager.shared.storage
+                .reference(withPath: uid)
+            
+            guard let imageData = self.newProfileImage?.jpegData(compressionQuality: 0.2) else { return nil }
+            
+            let _ = try await ref.putDataAsync(imageData)
+            return try await ref.downloadURL()
+            
+        } catch {
+            print("Failed to push profile image to storage: \(error)")
+            return nil
+        }
+    }
+    
+    @MainActor
+    func updateProfileInformation(profileImageUrl: URL) async {
+        guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return }
+        let userData = [FirebaseConstants.profileImageUrl: profileImageUrl.absoluteString]
+        do {
+            try await FirebaseManager.shared.firestore
+                .collection(FirebaseConstants.users)
+                .document(uid)
+                .setData(userData, mergeFields: [FirebaseConstants.profileImageUrl])
+            print("successfully updated user data in firestore")
+        } catch {
+            print(error)
+        }
     }
 }

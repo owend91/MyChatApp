@@ -8,13 +8,16 @@
 import SwiftUI
 
 struct MessageHomeView: View {
+    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var routerManager: NavigationRouter
     @StateObject var vm = MessageHomeViewModel()
     @State private var showSettings = false
     @State private var showNewMessasgeScreen = false
     @State var selectedUser: User?
+    @State private var showUpdateProfileImage = false
+    @State private var shouldShowImagePicker = false
 
-    let loggedInUser: User
+    @State var loggedInUser: User
 
     var body: some View {
         ZStack {
@@ -106,9 +109,64 @@ struct MessageHomeView_Previews: PreviewProvider {
 }
 
 extension MessageHomeView {
+    
     var headerBar: some View {
         HStack(spacing: 10) {
-            UserAvatarCircleView(url: loggedInUser.profileImageUrl, dimension: 64, showShadow: true)
+            Button {
+                showUpdateProfileImage.toggle()
+            } label: {
+                UserAvatarCircleView(url: loggedInUser.profileImageUrl, dimension: 64, showShadow: true)
+            }
+            .popover(isPresented: $showUpdateProfileImage) {
+                NavigationStack {
+                    VStack {
+                        Button {
+                            shouldShowImagePicker.toggle()
+                        } label: {
+                            if let newImage = vm.newProfileImage {
+                                selectedImageView
+                            } else {
+                                UserAvatarCircleView(url: loggedInUser.profileImageUrl, dimension: 150, showShadow: false)
+                            }
+                        }
+                        .fullScreenCover(isPresented: $shouldShowImagePicker) {
+                            ImagePicker(image: $vm.newProfileImage)
+
+                        }
+                        
+                        Button {
+                            Task {
+                                if let newUrl = await vm.updateAvatar() {
+                                    vm.newProfileImage = nil
+                                    loggedInUser.profileImageUrl = newUrl
+                                }
+                            }
+                            showUpdateProfileImage = false
+                        } label: {
+                            Spacer()
+                            Text("Update Avatar")
+                                .padding(.vertical)
+                            Spacer()
+                        }
+                        .buttonBorderShape(.capsule)
+                        .buttonStyle(.borderedProminent)
+                        .shadow(radius: 5)
+                        .padding()
+                        
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button {
+                                vm.newProfileImage = nil
+                                showUpdateProfileImage = false
+                            } label: {
+                                Text("Close")
+                            }
+                        }
+                    }
+                }
+            }
+            
             
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(loggedInUser.userName)")
@@ -132,5 +190,19 @@ extension MessageHomeView {
             }
             
         }
+    }
+    
+    var selectedImageView: some View {
+        Image(uiImage: vm.newProfileImage!)
+            .resizable()
+            .scaledToFill()
+            .clipped()
+            .frame(width: 150, height: 150)
+            .clipShape(Circle())
+            .overlay {
+                RoundedRectangle(cornerRadius: 80)
+                    .stroke(Color(.label), lineWidth: 1)
+            }
+            .padding()
     }
 }

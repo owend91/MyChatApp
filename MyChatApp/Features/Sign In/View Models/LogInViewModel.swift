@@ -26,7 +26,7 @@ class LogInViewModel: ObservableObject {
             let result = try await FirebaseManager.shared.auth
                 .createUser(withEmail: email, password: password)
             print("Successfully created user: \(result.user.uid)")
-//            FirebaseManager.shared.loggedInUid = result.user.uid
+
             if profileImage == nil {
                 await storeUserInformation(profileImageUrl: URL(string: "www.google.com")! )
                 

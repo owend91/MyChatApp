@@ -11,7 +11,7 @@ struct User: Identifiable, Equatable {
     var id: String { uid }
     let uid: String
     let email: String
-    let profileImageUrl: URL?
+    var profileImageUrl: URL?
     var fcmToken: String
     
     var userName: String {
