@@ -12,6 +12,7 @@ struct ChatView: View {
     @State var initialMessageLoad = true
     @State var shouldShowImagePicker = false
     @State var selectedMessage: ChatMessage?
+    @State var textViewTapped = false
     let haptics = UIImpactFeedbackGenerator(style: .medium)
 
     
@@ -114,6 +115,10 @@ extension ChatView {
                     descriptionPlaceholder
                     TextEditor(text: $vm.text)
                         .opacity(vm.text.isEmpty ? 0.5 : 1)
+                        .onTapGesture {
+                            print("Text view tapped")
+                            textViewTapped.toggle()
+                        }
                 }
             }
             .frame(height: 40)
@@ -161,6 +166,14 @@ extension ChatView {
                             }
                         }
                     }
+                    .onChange(of: textViewTapped, perform: { _ in
+                        print("textViewTapped changed")
+                        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100)) {
+                            withAnimation(.easeOut(duration: 0.5)) {
+                                scrollViewProxy.scrollTo("BOTTOM")
+                            }
+                        }
+                    })
                 }
             }
             .padding(.top, 1)
