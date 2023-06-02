@@ -12,7 +12,7 @@ class MessageHomeViewModel: ObservableObject {
     @Published var userSignedOut = false
     @Published var recentMessages: [RecentMessage] = []
     @Published var newProfileImage: UIImage?
-    private var firestoreListener: ListenerRegistration?
+    var firestoreListener: ListenerRegistration?
     
     
     @MainActor
@@ -23,6 +23,7 @@ class MessageHomeViewModel: ObservableObject {
     func handleSignOut() {
         do {
             firestoreListener?.remove()
+            firestoreListener = nil
             try FirebaseManager.shared.auth.signOut()
             FirebaseManager.shared.loggedInUser = nil
             userSignedOut = true
@@ -63,8 +64,7 @@ class MessageHomeViewModel: ObservableObject {
     
     @MainActor
     func updateAvatar() async -> URL? {
-//        WILL USE THIS LATER! Want to store profile images to local storage
-//        await deleteOldProfileImage()
+        await deleteOldProfileImage()
         if let url = await storeProfileImage() {
             await updateProfileInformation(profileImageUrl: url)
             return url
@@ -78,7 +78,7 @@ class MessageHomeViewModel: ObservableObject {
         
         do {
             let ref = FirebaseManager.shared.storage
-                .reference(withPath: uid)
+                .reference(withPath: "\(uid)_\(abs(Date().hashValue))")
             try await ref.delete()
             
         } catch {
@@ -93,7 +93,7 @@ class MessageHomeViewModel: ObservableObject {
         
         do {
             let ref = FirebaseManager.shared.storage
-                .reference(withPath: uid)
+                .reference(withPath:  "\(uid)_\(abs(Date().hashValue))")
             
             guard let imageData = self.newProfileImage?.jpegData(compressionQuality: 0.2) else { return nil }
             

@@ -21,7 +21,8 @@ struct NewMessageView: View {
                         dismiss()
                     } label: {
                         HStack(spacing: 15) {
-                            UserAvatarCircleView(url: user.profileImageUrl, dimension: 50, showShadow: true)
+                            LocalOrRemoteAvatarCircleView(image: user.localProfileImage, imageUrl: user.profileImageUrl?.absoluteString ?? "", dimension: 50, showShadow: true)
+
                             Text("\(user.email)")
                                 .foregroundColor(Color(.label))
                             Spacer()

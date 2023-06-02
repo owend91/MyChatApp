@@ -65,8 +65,9 @@ class LogInViewModel: ObservableObject {
         guard let uid = FirebaseManager.shared.auth.currentUser?.uid else { return nil }
         
         do {
+
             let ref = FirebaseManager.shared.storage
-                .reference(withPath: uid)
+                .reference(withPath: "\(uid)_\(abs(Date().hashValue))")
             
             guard let imageData = self.profileImage?.jpegData(compressionQuality: 0.2) else { return nil }
             

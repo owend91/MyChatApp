@@ -22,6 +22,10 @@ final class NavigationRouter: ObservableObject {
         routes = []
         routes.append(.login)
     }
+    func resetToMessages() {
+        routes = []
+        routes.append(.messageHome(loggedInUser: FirebaseManager.shared.loggedInUser!))
+    }
     
     func goBack() {
         _ = routes.popLast()

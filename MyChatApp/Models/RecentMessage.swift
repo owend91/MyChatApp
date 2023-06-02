@@ -7,6 +7,7 @@
 
 import Foundation
 import Firebase
+import UIKit
 
 struct RecentMessage: Identifiable, Hashable {
     var id: String { documentId }
@@ -15,6 +16,7 @@ struct RecentMessage: Identifiable, Hashable {
     let email, profileImageUrl: String
     let timestamp: Timestamp
     let imageUrl: URL?
+    var localProfileImage: UIImage?
     
     init(documentId: String, data: [String: Any]) {
         self.documentId = documentId
@@ -38,6 +40,8 @@ struct RecentMessage: Identifiable, Hashable {
             }
         }
         self.text = tempText
+        getLocallySavedProfileImage()
+        
     }
     
     var username: String {
@@ -54,7 +58,7 @@ struct RecentMessage: Identifiable, Hashable {
         let days = diffComponents.day
         let hours = diffComponents.hour
         let minutes = diffComponents.minute
-
+        
         if let years, years > 0  {
             return "\(years)y"
         } else if let months, months > 0 {
@@ -67,6 +71,21 @@ struct RecentMessage: Identifiable, Hashable {
             return "\(minutes)m"
         } else {
             return "<1m"
+        }
+        
+    }
+    
+    mutating func getLocallySavedProfileImage() {
+        do {
+            let urlString = profileImageUrl
+            let tokens = urlString.components(separatedBy: "o/")
+            let usefulToken = tokens[1]
+            let imageName = usefulToken.components(separatedBy: "?")[0]
+            let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let localImageUrl = documents.appendingPathComponent("\(imageName).png")
+            localProfileImage = UIImage(data: try Data(contentsOf: localImageUrl))
+        } catch {
+            print("unable to get local profile image")
         }
         
     }

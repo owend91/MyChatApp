@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct ChatView: View {
+    @EnvironmentObject var routerManager: NavigationRouter
     @ObservedObject var vm: ChatViewModel
-    @State var initialMessageLoad = true
     @State var shouldShowImagePicker = false
     @State var selectedMessage: ChatMessage?
     @State var textViewTapped = false
@@ -62,9 +62,13 @@ struct ChatView: View {
                 }
             }
         }
-
         .onDisappear {
             vm.firestoreListener?.remove()
+            vm.firestoreListener = nil
+        }
+        .onAppear{
+            print("route count: \(routerManager.routes.count)")
+            print("routes: \(routerManager.routes)")
         }
         .navigationTitle(vm.chattingWithUser.email)
         .navigationBarTitleDisplayMode(.inline)
@@ -95,8 +99,7 @@ extension ChatView {
             .fullScreenCover(isPresented: $shouldShowImagePicker) {
                 ImagePicker(image: $vm.pictureForMessage)
             }
-            
-            
+
 
             ZStack {
                 if let image = vm.pictureForMessage {
@@ -116,7 +119,6 @@ extension ChatView {
                     TextEditor(text: $vm.text)
                         .opacity(vm.text.isEmpty ? 0.5 : 1)
                         .onTapGesture {
-                            print("Text view tapped")
                             textViewTapped.toggle()
                         }
                 }
@@ -158,11 +160,14 @@ extension ChatView {
                     .frame(width: 1, height: 1)
                     .id("BOTTOM")
                     .onReceive(vm.$chatCount) { _ in
-                        if initialMessageLoad {
-                            initialMessageLoad = false
+                        print("On receive count: \(vm.chatCount)")
+                        if vm.chatCount < 1 {
+                            scrollViewProxy.scrollTo("BOTTOM")
                         } else {
-                            withAnimation(.easeOut(duration: 0.5)) {
-                                scrollViewProxy.scrollTo("BOTTOM")
+                            DispatchQueue.main.async{
+                                withAnimation(.easeOut(duration: 0.5)) {
+                                    scrollViewProxy.scrollTo("BOTTOM")
+                                }
                             }
                         }
                     }

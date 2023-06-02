@@ -33,8 +33,9 @@ struct MessageHomeView: View {
                             }
                         } label: {
                             HStack {
-                                UserAvatarCircleView(url: URL(string: rm.profileImageUrl), dimension: 50, showShadow: false)
+                                LocalOrRemoteAvatarCircleView(image: rm.localProfileImage, imageUrl: rm.profileImageUrl, dimension: 50, showShadow: false)
                                     .padding(.top, 1)
+                                
                                 VStack(alignment: .leading) {
                                     Text(rm.username)
                                         .foregroundColor(Color(.label))
@@ -47,8 +48,6 @@ struct MessageHomeView: View {
                                 Spacer()
                                 Text(rm.timeSinceMessage)
                                     .font(.system(size: 12, weight: .bold))
-
-                                
                             }
                         }
                         
@@ -84,6 +83,8 @@ struct MessageHomeView: View {
             .onChange(of: selectedUser, perform: { _ in
                 if let selectedUser {
                     print("User selected")
+//                    vm.firestoreListener?.remove()
+//                    vm.firestoreListener = nil
                     routerManager.push(to: .chatView(vm: ChatViewModel(chattingWithUser: selectedUser)))
                 }
             })
@@ -95,9 +96,9 @@ struct MessageHomeView: View {
             .navigationBarBackButtonHidden()
             .onAppear{
                 selectedUser = nil
+//                routerManager.resetToMessages()
+//                vm.getAllRecentMessages()
             }
-            
-            
         }
     }
 }
@@ -115,7 +116,7 @@ extension MessageHomeView {
             Button {
                 showUpdateProfileImage.toggle()
             } label: {
-                UserAvatarCircleView(url: loggedInUser.profileImageUrl, dimension: 64, showShadow: true)
+                LocalOrRemoteAvatarCircleView(image: loggedInUser.localProfileImage, imageUrl: loggedInUser.profileImageUrl?.absoluteString ?? "", dimension: 64, showShadow: true)
             }
             .popover(isPresented: $showUpdateProfileImage) {
                 NavigationStack {
@@ -123,10 +124,10 @@ extension MessageHomeView {
                         Button {
                             shouldShowImagePicker.toggle()
                         } label: {
-                            if let newImage = vm.newProfileImage {
+                            if let _ = vm.newProfileImage {
                                 selectedImageView
                             } else {
-                                UserAvatarCircleView(url: loggedInUser.profileImageUrl, dimension: 150, showShadow: false)
+                                LocalOrRemoteAvatarCircleView(image: loggedInUser.localProfileImage, imageUrl: loggedInUser.profileImageUrl?.absoluteString ?? "", dimension: 150, showShadow: true)
                             }
                         }
                         .fullScreenCover(isPresented: $shouldShowImagePicker) {
@@ -139,6 +140,7 @@ extension MessageHomeView {
                                 if let newUrl = await vm.updateAvatar() {
                                     vm.newProfileImage = nil
                                     loggedInUser.profileImageUrl = newUrl
+                                    FirebaseManager.shared.loggedInUser?.profileImageUrl = newUrl
                                 }
                             }
                             showUpdateProfileImage = false
@@ -206,3 +208,5 @@ extension MessageHomeView {
             .padding()
     }
 }
+
+

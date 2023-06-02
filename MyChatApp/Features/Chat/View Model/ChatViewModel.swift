@@ -8,6 +8,7 @@
 import SwiftUI
 import Firebase
 import FirebaseFirestore
+import UIKit
 
 class ChatViewModel: ObservableObject {
     @Published var text = ""
@@ -23,6 +24,12 @@ class ChatViewModel: ObservableObject {
     init(chattingWithUser: User) {
         self.chattingWithUser = chattingWithUser
         fetchMessages()
+        print("init called")
+    }
+    
+    deinit {
+        print("deinit called")
+        firestoreListener?.remove()
     }
     
     @MainActor
@@ -56,10 +63,6 @@ class ChatViewModel: ObservableObject {
                            FirebaseConstants.timestamp: Timestamp(),
                            FirebaseConstants.messageImage: imageUrl?.absoluteString as? String ?? "",
                            FirebaseConstants.reciprocalMessageId: currentUserMessage.documentID] as [String: Any]
-        
-        
-
-        
         
         do {
             backupText = text
@@ -101,8 +104,6 @@ class ChatViewModel: ObservableObject {
                                   FirebaseConstants.timestamp: Timestamp(),
                                   FirebaseConstants.messageImage: imageUrl?.absoluteString as? String ?? ""] as [String: Any]
         
-
-        
         
         let dataForChattingWithUser = [FirebaseConstants.fromId: fromId,
                                        FirebaseConstants.toId: toId,
@@ -112,9 +113,12 @@ class ChatViewModel: ObservableObject {
                                        FirebaseConstants.timestamp: Timestamp(),
                                        FirebaseConstants.messageImage: imageUrl?.absoluteString as? String ?? ""] as [String: Any]
         
+        
+        
         do {
             try await currentUserDocument.setData(dataForCurrentUser)
             try await chattingWithUserDocument.setData(dataForChattingWithUser)
+            await downloadImage(chattingWithUid: chattingWithUser.uid, url: chattingWithUser.profileImageUrl)
             
         } catch {
             print("Error saving recent message: \(error)")
@@ -126,6 +130,7 @@ class ChatViewModel: ObservableObject {
         guard let fromId = FirebaseManager.shared.loggedInUser?.uid else { return }
         let toId = chattingWithUser.uid
         chatMessages.removeAll()
+//        firestoreListener?.remove()
         
         firestoreListener = FirebaseManager
             .shared
@@ -136,12 +141,11 @@ class ChatViewModel: ObservableObject {
             .order(by: FirebaseConstants.timestamp)
             .addSnapshotListener { querySnapshot, error in
                 if let error = error {
-                    print("Error adding chat log listened: \(error)")
+                    print("Error adding chat log listener: \(error)")
                     return
                 }
                 
                 querySnapshot?.documentChanges.forEach({ documentChange in
-                    print("document change")
                     if documentChange.type == .added {
                         let data = documentChange.document.data()
                         let documentId = documentChange.document.documentID
@@ -160,9 +164,9 @@ class ChatViewModel: ObservableObject {
                     }
                 })
                 
-                DispatchQueue.main.async{
+                DispatchQueue.main.async {
                     self.chatCount += 1
-                    print("incremented counter: \(self.chatCount)")
+                    print("snapshot listener chatcount: \(self.chatCount)")
                 }
             }
     }
@@ -256,6 +260,49 @@ class ChatViewModel: ObservableObject {
             }
         } catch {
             print("Error reacting to a message: \(error)")
+        }
+    }
+    
+    func downloadImage(chattingWithUid: String, url: URL?) async {
+        if let url = url {
+            let urlString = url.absoluteString
+            let tokens = urlString.components(separatedBy: "o/")
+            let usefulToken = tokens[1]
+            let imageName = usefulToken.components(separatedBy: "?")[0]
+            let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let localImageUrl = documents.appendingPathComponent("\(imageName).png")
+            
+            let path = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as String
+            let pathUrl = NSURL(fileURLWithPath: path)
+            let fileManager = FileManager.default
+            if let pathComponent = pathUrl.appendingPathComponent("\(imageName).png") {
+                let filePath = pathComponent.path
+                if fileManager.fileExists(atPath: filePath){
+                    print("Image already exists")
+                    return
+                }
+            }
+            
+            do {
+                let items = try fileManager.contentsOfDirectory(atPath: path)
+                
+                for item in items {
+                    if item.starts(with: chattingWithUid) {
+                        let imageToDelete = documents.appendingPathComponent(item)
+                        try fileManager.removeItem(at: imageToDelete)
+                        print("old image deleted")
+                        break
+                    }
+                }
+                
+                let (data, _) = try await URLSession.shared.data(from: url)
+                
+                try data.write(to: localImageUrl)
+                print("Image saved to: \(localImageUrl)")
+                
+            } catch {
+                print("Error saving image")
+            }
         }
     }
 }

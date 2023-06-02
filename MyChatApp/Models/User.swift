@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 struct User: Identifiable, Equatable {
     var id: String { uid }
@@ -13,6 +14,8 @@ struct User: Identifiable, Equatable {
     let email: String
     var profileImageUrl: URL?
     var fcmToken: String
+    var localProfileImage: UIImage?
+
     
     var userName: String {
         email.components(separatedBy: "@")[0]
@@ -23,6 +26,8 @@ struct User: Identifiable, Equatable {
         self.email = data[FirebaseConstants.email] as? String ?? ""
         self.profileImageUrl = URL(string: data[FirebaseConstants.profileImageUrl] as? String ?? "")
         self.fcmToken = data[FirebaseConstants.fcmToken] as? String ?? ""
+        getLocallySavedProfileImage()
+
     }
     
     init(uid: String, email: String, profileImageUrl: URL?, fcmToken: String) {
@@ -30,6 +35,8 @@ struct User: Identifiable, Equatable {
         self.email = email
         self.profileImageUrl = profileImageUrl
         self.fcmToken = fcmToken
+        getLocallySavedProfileImage()
+
     }
     
     init(recentMessage: RecentMessage) async {
@@ -42,8 +49,23 @@ struct User: Identifiable, Equatable {
         }
         self.uid = currentUser.uid == recentMessage.fromId ? recentMessage.toId : recentMessage.fromId
         self.email = recentMessage.email
-        self.profileImageUrl = URL(string: recentMessage.profileImageUrl)
-        self.fcmToken = await FirebaseManager.getUsersFcmToken(uid: self.uid)
+        (self.fcmToken, self.profileImageUrl) = await FirebaseManager.getUsersFcmTokenAndProfileImageUrl(uid: self.uid)
+    }
+    
+    mutating func getLocallySavedProfileImage() {
+        do {
+            if let profileImageUrl = profileImageUrl {
+                let urlString = profileImageUrl.absoluteString
+                let tokens = urlString.components(separatedBy: "o/")
+                let usefulToken = tokens[1]
+                let imageName = usefulToken.components(separatedBy: "?")[0]
+                let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                let localImageUrl = documents.appendingPathComponent("\(imageName).png")
+                localProfileImage = UIImage(data: try Data(contentsOf: localImageUrl))
+            }
+        } catch {
+            print("unable to get local profile image")
+        }
     }
 }
 

@@ -34,9 +34,7 @@ struct MyChatAppApp: App {
             .environmentObject(routerManager)
             .task {
                 if let _ = FirebaseManager.shared.auth.currentUser {
-                    print("checking current user")
                     await FirebaseManager.getUserInformation()
-//                    print("received current user: \(FirebaseManager.shared.loggedInUser)")
                     if let user = FirebaseManager.shared.loggedInUser {
                         routerManager.push(to: .messageHome(loggedInUser: user))
                     }

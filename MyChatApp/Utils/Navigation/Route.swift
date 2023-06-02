@@ -20,16 +20,14 @@ extension Route: Hashable {
     }
     static func == (lhs: Route, rhs: Route) -> Bool {
         switch(lhs, rhs) {
-        case (.messageHome, .messageHome):
-            return true
-        case (.chatView, .chatView):
-            return true
+        case (.messageHome(let lhsItem), .messageHome(let rhsItem)):
+            return lhsItem.uid == rhsItem.uid
+        case (.chatView(let lhsItem), .chatView(let rhsItem)):
+            return lhsItem.chattingWithUser.uid == rhsItem.chattingWithUser.uid
         case (.login, .login):
             return true
         default:
             return false
-            
-            
         }
     }
 }

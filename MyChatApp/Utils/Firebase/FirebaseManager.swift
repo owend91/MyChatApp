@@ -51,20 +51,20 @@ class FirebaseManager: ObservableObject {
     }
     
     @MainActor
-    static func getUsersFcmToken(uid: String) async -> String {
+    static func getUsersFcmTokenAndProfileImageUrl(uid: String) async -> (String, URL?) {
         do {
             let snapshot = try await FirebaseManager.shared.firestore.collection(FirebaseConstants.users).document(uid).getDocument()
             print("user snapshot received")
             guard let data = snapshot.data() else {
                 print("error with data")
-                return ""
+                return ("",nil)
             }
             
-            return data[FirebaseConstants.fcmToken] as? String ?? ""
+            return (data[FirebaseConstants.fcmToken] as? String ?? "", URL(string: data[FirebaseConstants.profileImageUrl] as? String ?? ""))
             
         } catch {
             print("Error fetching users fcm token: \(error.localizedDescription)")
-            return ""
+            return ("",nil)
         }
     }
 }
